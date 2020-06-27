@@ -41,6 +41,23 @@ Permission required:
 ```bash
 terraform apply --auto-approve #to create the infra + jenkins.
 ```
+## How to create a simple nodejs deployment job.
+
+1. Go to jenkins UI. 
+2. Add the private key to jenkins credentials. (To authenticate with GitHUB).
+3. Create a freestyle job.
+4. add the gut details, Project link: https://github.com/fhinkel/nodejs-hello-world 
+5. Use the below script to run the servelet.
+
+```bash
+#!/bin/bash
+forever stop /opt/helloworld/index.js
+rm -rf /opt/helloworld/
+sudo mkdir /opt/helloworld/
+cp index.js package.json /opt/helloworld/
+cd /opt/helloworld/ && npm install 
+forever -a -l helloworld.log start /opt/helloworld/index.js
+```
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
