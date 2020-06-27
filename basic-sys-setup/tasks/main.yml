@@ -1,0 +1,54 @@
+---
+
+- name: add localhost entry in vm - temp.
+  blockinfile:
+    dest: /etc/hosts
+    block: |
+      127.0.0.1 test.jenkins.local
+      127.0.0.1 test.app.local
+
+- name: check swap
+  stat:
+    path: /swapfile
+  register: swap_result
+
+- name: create swapfile
+  shell: fallocate -l 1G /swapfile
+  when: not swap_result.stat.exists
+
+- name: change swapfile permission
+  shell: chmod 600 /swapfile
+  when: not swap_result.stat.exists
+
+- name: format swapfile
+  shell: mkswap /swapfile
+  when: not swap_result.stat.exists
+
+- name: enable swap
+  shell: swapon /swapfile
+  when: not swap_result.stat.exists
+
+- name: add fstab entry
+  shell: echo "/swapfile swap swap defaults,nofail 0 0" >> /etc/fstab
+  when: not swap_result.stat.exists
+
+- name: install java
+  apt:
+    name: default-jdk
+    state: present
+    
+- name: install nodejs.
+  apt:
+    name: nodejs
+    state: present
+
+
+- name: install npm.
+  apt:
+    name: npm
+    state: present
+
+- name: Install forever.
+  npm:
+    name: forever
+    global: yes

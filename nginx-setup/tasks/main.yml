@@ -1,0 +1,68 @@
+---
+- name: install nginx.
+  apt:
+    name: "{{ nginx_pkg }}"
+    state: present
+    update_cache: yes
+
+- name: create ssl dir
+  file:
+    path: /etc/nginx/ssl/
+    state: directory
+    mode: '0755' 
+
+- name: nginx | generate self-signed SSL certificate
+  command:
+    openssl req -new -nodes -x509 -subj "{{ nginx_ssl_certificate_subject }}" -days {{ nginx_ssl_certificate_days }} -keyout {{ nginx_ssl_certificate_key }} -out {{ nginx_ssl_certificate }} -extensions v3_ca
+  args:
+    creates: "{{ nginx_ssl_certificate }}"
+
+- name: Generate Diffie-Hellman parameters with the default size (4096 bits)
+  openssl_dhparam:
+    path: /etc/nginx/ssl/dhparam.pem
+    size: 2048
+
+- name: remove default nginx file link
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: create  jenkins config files
+  template:
+    src: jenkins.j2
+    dest: /etc/nginx/sites-available/jenkins.conf
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: sym link jenkins config files
+  file:
+    src: /etc/nginx/sites-available/jenkins.conf
+    dest: /etc/nginx/sites-enabled/jenkins.conf
+    owner: root
+    group: root
+    mode: '0755'
+    state: link
+
+- name: create application config.
+  template:
+    src: helloworld.j2
+    dest: /etc/nginx/sites-available/helloworld.conf
+    owner: root
+    group: root
+    mode: '0755'
+    
+
+- name: sym link config files
+  file:
+    src: /etc/nginx/sites-available/helloworld.conf
+    dest: /etc/nginx/sites-enabled/helloworld.conf
+    owner: root
+    group: root
+    mode: '0755'
+    state: link
+
+- name: Restart nginx.
+  service:
+    name: nginx
+    state: restarted

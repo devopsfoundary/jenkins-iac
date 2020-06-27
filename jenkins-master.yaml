@@ -1,0 +1,21 @@
+###########################################################
+#                                                         #
+# How to run me ?                                         #
+# ansible-playbook  jenkins-master.yaml -i 'Ip_address,'  #
+#                                                         #
+###########################################################
+
+-
+  hosts:  all
+  gather_facts: yes
+  any_errors_fatal: true
+  become: true
+  vars:
+    jenkins_hostname: test.jenkins.local
+  roles:
+    - { role: basic-sys-setup, when: "ansible_os_family == 'Debian'" }
+    - { role: nginx-setup, when: "ansible_os_family == 'Debian'" }
+    - { role: jenkins-master, when: "ansible_os_family == 'Debian'" }
+
+
+
